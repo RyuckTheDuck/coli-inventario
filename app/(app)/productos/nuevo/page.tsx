@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-type Producto = { nombre: string; categoria: string | null };
+type Producto = { nombre: string; categoria: string | null; activo: boolean };
 type Existente = { prenda: string; color: string; talla: string; stock: number };
 
 const TALLAS_BASE = ["XS", "S", "M", "L", "XL", "XXL"];
@@ -39,7 +40,7 @@ export default function ProductosPage() {
 
   const cargar = useCallback(async () => {
     const [pRes, sRes] = await Promise.all([
-      supabase.from("productos").select("nombre,categoria").order("nombre"),
+      supabase.from("productos").select("nombre,categoria,activo").order("nombre"),
       supabase.from("stock_actual").select("prenda,color,talla,stock"),
     ]);
     if (pRes.error || sRes.error) {
@@ -62,6 +63,12 @@ export default function ProductosPage() {
         new Set(productos.map((p) => p.categoria).filter((c): c is string => !!c))
       ).sort(),
     [productos]
+  );
+
+  // Colores que ya usa Coli (botones de un toque)
+  const coloresExistentes = useMemo(
+    () => Array.from(new Set(existentes.map((e) => e.color))).sort(),
+    [existentes]
   );
 
   // Variantes que ya existen del producto elegido (solo modo "existente")
@@ -103,6 +110,14 @@ export default function ProductosPage() {
     setColorTxt("");
   }
 
+  function alternarColor(c: string) {
+    setColores((prev) =>
+      prev.some((x) => x.toLowerCase() === c.toLowerCase())
+        ? prev.filter((x) => x.toLowerCase() !== c.toLowerCase())
+        : [...prev, c]
+    );
+  }
+
   function alternarTalla(t: string) {
     setTallas((prev) => {
       if (prev.includes(t)) return prev.filter((x) => x !== t);
@@ -142,13 +157,15 @@ export default function ProductosPage() {
       setMensaje({ tipo: "error", texto: "Escribe o elige el nombre del producto." });
       return;
     }
-    if (
-      modo === "nuevo" &&
-      productos.some((p) => p.nombre.toLowerCase() === nombreLimpio.toLowerCase())
-    ) {
+    const mismoNombre = productos.find(
+      (p) => p.nombre.toLowerCase() === nombreLimpio.toLowerCase()
+    );
+    if (modo === "nuevo" && mismoNombre) {
       setMensaje({
         tipo: "error",
-        texto: "Ese producto ya existe. Cambia a 'Producto existente' para agregarle colores, tallas o stock.",
+        texto: mismoNombre.activo
+          ? "Ese producto ya existe. Cambia a 'Producto existente' para agregarle colores, tallas o stock."
+          : "Ese producto existe pero está desactivado. Reactívalo en la sección Productos.",
       });
       return;
     }
@@ -213,7 +230,10 @@ export default function ProductosPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Productos y variantes</h2>
+        <Link href="/productos" className="text-sm text-slate-500 underline">
+          ← Volver a productos
+        </Link>
+        <h2 className="mt-1 text-xl font-semibold">Crear producto o agregar variantes</h2>
         <p className="mt-1 text-sm text-slate-500">
           Crea una prenda nueva o agrega colores y tallas nuevas a una que ya existe,
           con su stock.
@@ -297,7 +317,7 @@ export default function ProductosPage() {
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base"
             >
               <option value="">Elige un producto</option>
-              {productos.map((p) => (
+              {productos.filter((p) => p.activo).map((p) => (
                 <option key={p.nombre} value={p.nombre}>
                   {p.nombre}
                 </option>
@@ -359,6 +379,31 @@ export default function ProductosPage() {
           ))}
         </div>
       </section>
+
+      {/* Colores que ya existen */}
+      {coloresExistentes.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-sm font-medium text-slate-600">
+            Colores que ya usa Coli (toca para agregar o quitar)
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {coloresExistentes.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => alternarColor(c)}
+                className={`min-h-11 rounded-xl px-4 ring-1 ${
+                  colores.some((x) => x.toLowerCase() === c.toLowerCase())
+                    ? "bg-slate-900 text-white ring-slate-900"
+                    : "bg-white text-slate-800 ring-slate-300"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Tallas */}
       <section>

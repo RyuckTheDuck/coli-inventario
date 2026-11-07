@@ -63,6 +63,7 @@ export default function IngresoStockPage() {
         .select("id,cantidad,fecha,nota,variantes(color,talla,productos(nombre))")
         .eq("tipo", "entrada")
         .not("created_by", "is", null)
+        .is("anulado_at", null)
         .order("created_at", { ascending: false })
         .limit(8),
     ]);
@@ -168,8 +169,8 @@ export default function IngresoStockPage() {
   }
 
   async function anular(id: string) {
-    if (!window.confirm("¿Anular este ingreso? Se restan esas unidades del stock.")) return;
-    const { error } = await supabase.from("movimientos").delete().eq("id", id);
+    if (!window.confirm("¿Anular este ingreso? Se restan esas unidades del stock y queda registrado como anulado.")) return;
+    const { error } = await supabase.rpc("anular_movimiento", { p_id: id });
     if (error) {
       setMensaje({ tipo: "error", texto: error.message });
       return;

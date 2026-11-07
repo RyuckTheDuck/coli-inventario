@@ -64,6 +64,7 @@ export default function NuevaVentaPage() {
         .select("id,cantidad,canal,fecha,variantes(color,talla,productos(nombre))")
         .eq("tipo", "venta")
         .not("created_by", "is", null) // solo ventas hechas desde la app
+        .is("anulado_at", null) // sin las anuladas
         .order("created_at", { ascending: false })
         .limit(8),
     ]);
@@ -185,8 +186,8 @@ export default function NuevaVentaPage() {
   }
 
   async function anular(id: string) {
-    if (!window.confirm("¿Anular esta venta? La unidad vuelve al stock.")) return;
-    const { error } = await supabase.from("movimientos").delete().eq("id", id);
+    if (!window.confirm("¿Anular esta venta? La unidad vuelve al stock y la venta queda registrada como anulada.")) return;
+    const { error } = await supabase.rpc("anular_movimiento", { p_id: id });
     if (error) {
       setMensaje({ tipo: "error", texto: `No se pudo anular: ${error.message}` });
       return;

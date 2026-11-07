@@ -9,7 +9,7 @@ const SECCIONES = [
   { href: "/inventario", nombre: "Inventario", icono: "📦", activo: true },
   { href: "/ventas/nueva", nombre: "Vender", icono: "🛒", activo: true },
   { href: "/ingresos/nuevo", nombre: "Ingresar", icono: "📥", activo: true },
-  { href: "/productos/nuevo", nombre: "Productos", icono: "🏷️", activo: true },
+  { href: "/productos", nombre: "Productos", icono: "🏷️", activo: true },
   { href: "/dashboard", nombre: "Dashboard", icono: "📊", activo: false },
 ];
 
