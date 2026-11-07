@@ -46,7 +46,8 @@ export default function NuevaVentaPage() {
   const [talla, setTalla] = useState<string | null>(null);
   const [cantidad, setCantidad] = useState(1);
   const [canal, setCanal] = useState<string | null>(null);
-  const [fecha, setFecha] = useState(hoy());
+  const [hoyStr, setHoyStr] = useState("");
+  const [fecha, setFecha] = useState("");
 
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState<{
@@ -80,6 +81,13 @@ export default function NuevaVentaPage() {
     }
     setCargando(false);
   }, [supabase]);
+
+  // La fecha de hoy se calcula solo en el navegador, nunca al construir la app
+  useEffect(() => {
+    const h = hoy();
+    setHoyStr(h);
+    setFecha(h);
+  }, []);
 
   useEffect(() => {
     cargar();
@@ -122,7 +130,7 @@ export default function NuevaVentaPage() {
 
   const seleccion = tallas.find((v) => v.talla === talla) ?? null;
   const stockDisponible = seleccion?.stock ?? 0;
-  const puedeGuardar = !!seleccion && !!canal && cantidad >= 1 && cantidad <= stockDisponible && !guardando;
+  const puedeGuardar = !!seleccion && !!canal && !!fecha && cantidad >= 1 && cantidad <= stockDisponible && !guardando;
 
   function elegirPrenda(p: string) {
     setPrenda(p);
@@ -286,8 +294,8 @@ export default function NuevaVentaPage() {
             <input
               type="date"
               value={fecha}
-              max={hoy()}
-              onChange={(e) => setFecha(e.target.value || hoy())}
+              max={hoyStr || undefined}
+              onChange={(e) => setFecha(e.target.value || hoyStr)}
               className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base"
             />
           </section>

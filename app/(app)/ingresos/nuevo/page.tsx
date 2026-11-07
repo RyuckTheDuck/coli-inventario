@@ -45,7 +45,8 @@ export default function IngresoStockPage() {
   const [talla, setTalla] = useState<string | null>(null);
   const [cantidad, setCantidad] = useState(1);
   const [nota, setNota] = useState("");
-  const [fecha, setFecha] = useState(hoy());
+  const [hoyStr, setHoyStr] = useState("");
+  const [fecha, setFecha] = useState("");
 
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState<{
@@ -84,6 +85,13 @@ export default function IngresoStockPage() {
     cargar();
   }, [cargar]);
 
+  // La fecha de hoy se calcula solo en el navegador, nunca al construir la app
+  useEffect(() => {
+    const h = hoy();
+    setHoyStr(h);
+    setFecha(h);
+  }, []);
+
   const prendas = useMemo(
     () => Array.from(new Set(variantes.map((v) => v.prenda))).sort(),
     [variantes]
@@ -114,7 +122,7 @@ export default function IngresoStockPage() {
 
   const seleccion = tallas.find((v) => v.talla === talla) ?? null;
   const puedeGuardar =
-    !!seleccion && cantidad >= 1 && cantidad <= 10000 && !guardando;
+    !!seleccion && !!fecha && cantidad >= 1 && cantidad <= 10000 && !guardando;
 
   function elegirPrenda(p: string) {
     setPrenda(p);
@@ -284,8 +292,8 @@ export default function IngresoStockPage() {
             <input
               type="date"
               value={fecha}
-              max={hoy()}
-              onChange={(e) => setFecha(e.target.value || hoy())}
+              max={hoyStr || undefined}
+              onChange={(e) => setFecha(e.target.value || hoyStr)}
               className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base"
             />
           </section>

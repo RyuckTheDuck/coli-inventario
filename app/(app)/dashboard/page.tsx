@@ -92,7 +92,8 @@ async function cargarVentas(
 
 export default function DashboardPage() {
   const supabase = useMemo(() => createClient(), []);
-  const hoy = useMemo(() => hoyISO(), []);
+  // La fecha de hoy se calcula solo en el navegador, nunca al construir la app
+  const [hoy, setHoy] = useState("");
 
   const [filas, setFilas] = useState<Fila[]>([]);
   const [ventas, setVentas] = useState<Venta[]>([]);
@@ -102,6 +103,10 @@ export default function DashboardPage() {
   const [incluirHist, setIncluirHist] = useState(false);
   const [umbral, setUmbral] = useState(45);
   const [agrupar, setAgrupar] = useState<"prenda" | "color" | "talla">("prenda");
+
+  useEffect(() => {
+    setHoy(hoyISO());
+  }, []);
 
   useEffect(() => {
     async function cargar() {
@@ -153,6 +158,7 @@ export default function DashboardPage() {
 
   // ---------- Ventas por semana (últimas 12) ----------
   const semanas = useMemo(() => {
+    if (!hoy) return [];
     const inicio = sumarDias(lunes(hoy), -77);
     const arr = Array.from({ length: 12 }, (_, i) => ({
       inicio: sumarDias(inicio, i * 7),
@@ -258,7 +264,7 @@ export default function DashboardPage() {
     descargarCSV(`ventas_coli_${hoy}.csv`, filasCSV);
   }
 
-  if (cargando) return <p className="text-slate-500">Cargando dashboard...</p>;
+  if (cargando || !hoy) return <p className="text-slate-500">Cargando dashboard...</p>;
   if (error)
     return (
       <p className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
