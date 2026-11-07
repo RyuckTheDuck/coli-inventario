@@ -10,7 +10,7 @@ const SECCIONES = [
   { href: "/ventas/nueva", nombre: "Vender", icono: "🛒", activo: true },
   { href: "/ingresos/nuevo", nombre: "Ingresar", icono: "📥", activo: true },
   { href: "/productos", nombre: "Productos", icono: "🏷️", activo: true },
-  { href: "/dashboard", nombre: "Dashboard", icono: "📊", activo: false },
+  { href: "/dashboard", nombre: "Dashboard", icono: "📊", activo: true },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
